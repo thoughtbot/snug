@@ -1,0 +1,77 @@
+name: Snug
+options:
+  bundleIdPrefix: com.thoughtbot
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_APPROACHABLE_CONCURRENCY: "YES"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    CODE_SIGN_STYLE: Manual
+  configs:
+    Debug:
+      CODE_SIGN_IDENTITY: Snug Dev
+      ENABLE_HARDENED_RUNTIME: "NO"
+    Release:
+      CODE_SIGN_IDENTITY: Developer ID Application
+      DEVELOPMENT_TEAM: 8E7TQ638ZD
+      ENABLE_HARDENED_RUNTIME: "YES"
+      OTHER_CODE_SIGN_FLAGS: --timestamp
+      # Xcode injects the get-task-allow (debugger) entitlement into
+      # non-archive builds; notarization rejects binaries that carry it.
+      CODE_SIGN_INJECT_BASE_ENTITLEMENTS: "NO"
+targets:
+  Snug:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources
+        excludes:
+          - Resources/**
+      - path: Sources/Resources
+        buildPhase: resources
+      - path: Support/AppIcon.icns
+        buildPhase: resources
+    entitlements:
+      path: Support/Snug.entitlements
+      properties:
+        com.apple.security.device.camera: true
+        com.apple.security.device.audio-input: true
+    info:
+      path: Support/Info.plist
+      properties:
+        CFBundleDisplayName: Snug
+        CFBundleIconFile: AppIcon
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.productivity
+        NSCameraUsageDescription: Snug uses your camera for video calls.
+        NSMicrophoneUsageDescription: Snug uses your microphone for calls.
+        CFBundleURLTypes:
+          - CFBundleURLName: Web URLs
+            CFBundleURLSchemes: [http, https]
+            CFBundleTypeRole: Viewer
+  SnugTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: Snug
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "-"
+        GENERATE_INFOPLIST_FILE: "YES"
+schemes:
+  Snug:
+    build:
+      targets:
+        Snug: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - SnugTests
