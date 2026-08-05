@@ -66,4 +66,4 @@ notarize:
 release: dmg notarize
 
 clean:
-	rm -rf $(BUILD_DIR) $(DIST) $(APP).xcodeproj Meet.xcodeproj
+	rm -rf $(BUILD_DIR) $(DIST) $(APP).xcodeproj Snug.xcodeproj

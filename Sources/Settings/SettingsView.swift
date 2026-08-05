@@ -31,7 +31,7 @@ struct SettingsView: View {
 
             LabeledContent("Default browser:") {
                 VStack(alignment: .leading, spacing: 4) {
-                    Button("Use Meet for All Links…") { makeDefaultBrowser() }
+                    Button("Use Snug for All Links…") { makeDefaultBrowser() }
                     Text("Meet opens meet.google.com links itself and sends everything else to the browser above.")
                         .font(.caption)
                         .foregroundStyle(.secondary)

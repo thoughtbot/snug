@@ -21,7 +21,7 @@ Built with SwiftUI and the macOS 26 `WebView`/`WebPage` API. Requires
 
 Optional, in **Snug → Settings**:
 - Pick which browser receives non-Meet links.
-- Click **"Use Meet for All Links…"** to make Snug your default browser —
+- Click **"Use Snug for All Links…"** to make Snug your default browser —
   Meet links open in Snug, everything else forwards to the browser above.
 - **"Hide my video tile once others join"** (on by default) minimizes your
   self-view automatically when a call starts.
