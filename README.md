@@ -63,6 +63,17 @@ Release builds are placed in files like `dist/Snug-<version>.dmg`.
 ## Notes
 
 - Meet sees Snug as Safari, so any Google Meet Safari-based limitations apply.
-- Self-view hiding drives Meet's own UI (a port of
-  [google-meet-hide-self](https://github.com/Cryptacular/google-meet-hide-self))
-  and may need updating if Meet's DOM changes.
+- Google Meet offers no API for controlling a call, so the features below reach
+  into the page itself. They depend on Meet's own markup and key bindings rather
+  than on anything supported, and can break when Meet changes. If one of them
+  stops working, that's the first place to look:
+  - **Menu items** don't call anything — they replay Meet's own keyboard
+    shortcuts inside the page, so they inherit whatever Meet currently binds.
+    **Help → Google Meet Keyboard Shortcuts** shows Meet's full list.
+  - **Meeting → Microphone** takes its checkmark from Meet's on-screen mic
+    button, which is what keeps it correct when you mute from the page rather
+    than from the menu. Note that macOS reports the microphone as in use the
+    whole time you're in a call, muted or not; that's Meet holding the
+    capture open, and is unrelated to the menu's state.
+  - **Self-view hiding** drives Meet's own UI (a port of
+    [google-meet-hide-self](https://github.com/Cryptacular/google-meet-hide-self)).
