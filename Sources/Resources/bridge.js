@@ -16,8 +16,27 @@
     }
   };
 
+  // Replays a keystroke in the page so native menu items can drive Meet's own
+  // keyboard handlers. Returns whether anything called preventDefault, a rough
+  // "Meet handled it" signal for the native log.
+  const dispatchKey = (chord) => {
+    const target = document.activeElement ?? document.body;
+    const init = { bubbles: true, cancelable: true, composed: true, ...chord };
+    const down = new KeyboardEvent("keydown", init);
+    // keyCode/which are read-only and not always honored by the constructor;
+    // pin them for handlers that still read the legacy fields.
+    if (chord.keyCode && down.keyCode !== chord.keyCode) {
+      for (const name of ["keyCode", "which"]) {
+        Object.defineProperty(down, name, { get: () => chord.keyCode });
+      }
+    }
+    target.dispatchEvent(down);
+    target.dispatchEvent(new KeyboardEvent("keyup", init));
+    return down.defaultPrevented;
+  };
+
   Object.defineProperty(window, "__meetBridge", {
-    value: Object.freeze({ version: "0.1.1" }),
+    value: Object.freeze({ version: "0.1.1", dispatchKey }),
   });
 
   // WebPage has no native window.open hook, so popups (attached Docs, chat

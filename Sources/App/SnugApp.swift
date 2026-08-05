@@ -27,6 +27,7 @@ struct SnugApp: App {
                 Button("Reload") { model.homePage.reload() }
                     .keyboardShortcut("r")
             }
+            MeetCommands()
         }
 
         WindowGroup(id: "meeting", for: URL.self) { $url in

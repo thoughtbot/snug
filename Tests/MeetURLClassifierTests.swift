@@ -88,6 +88,40 @@ import Testing
         }
     }
 
+    /// Menu items that drive Meet's in-call shortcuts are enabled off this, so
+    /// a false positive leaves a menu item that silently does nothing.
+    @Test func meetingCodePagesAreInAMeeting() {
+        for string in [
+            "https://meet.google.com/abc-defg-hij",
+            "https://meet.google.com/abc-defg-hij?authuser=0&pli=1",
+            "https://MEET.GOOGLE.COM/abc-defg-hij",
+            "https://meet.google.com/abcd-efghi-jklm-nop",
+        ] {
+            #expect(MeetURLClassifier.isMeetingPage(URL(string: string)!), Comment(rawValue: string))
+        }
+    }
+
+    @Test func landingPagesAreNotInAMeeting() {
+        for string in [
+            "https://meet.google.com/",
+            "https://meet.google.com",
+            "https://meet.google.com/new",
+            "https://meet.google.com/landing",
+            "https://meet.google.com/home",
+            "https://meet.google.com/lookup/abcdef",
+            "https://meet.google.com/abc-defg-hij/extra",
+            "https://workspace.google.com/products/meet/",
+            "https://mail.google.com/abc-defg-hij",
+        ] {
+            #expect(!MeetURLClassifier.isMeetingPage(URL(string: string)!), Comment(rawValue: string))
+        }
+    }
+
+    /// A window that hasn't loaded yet has no URL.
+    @Test func noURLIsNotInAMeeting() {
+        #expect(!MeetURLClassifier.isMeetingPage(nil))
+    }
+
     @Test func windowValueStripsVolatileParts() {
         let a = MeetURLClassifier.windowValue(for: URL(string: "https://meet.google.com/abc-defg-hij?authuser=0&hs=122#frag")!)
         let b = MeetURLClassifier.windowValue(for: URL(string: "http://MEET.GOOGLE.COM/abc-defg-hij")!)

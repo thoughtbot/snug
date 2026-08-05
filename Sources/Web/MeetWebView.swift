@@ -10,6 +10,7 @@ struct MeetWebView: View {
         WebView(page)
             .frame(minWidth: 900, minHeight: 620)
             .navigationTitle(displayTitle)
+            .focusedSceneValue(\.meetPage, focusedPage)
             .onAppear {
                 if page.url == nil {
                     page.load(URLRequest(url: MeetPageFactory.homeURL))
@@ -18,6 +19,16 @@ struct MeetWebView: View {
             .onChange(of: page.cameraCaptureState) { updateAssertion() }
             .onChange(of: page.microphoneCaptureState) { updateAssertion() }
             .onDisappear { assertion.setActive(false) }
+    }
+
+    /// What menu commands act on. Reading `page.url` here — in the body's
+    /// dependency graph rather than inside the command — is what makes menu
+    /// items re-enable when this window navigates into a call.
+    private var focusedPage: FocusedMeetPage {
+        FocusedMeetPage(
+            page: page,
+            isInMeeting: MeetURLClassifier.isMeetingPage(page.url)
+        )
     }
 
     /// The page titles itself "Meet"/"Google Meet"; rebrand the window

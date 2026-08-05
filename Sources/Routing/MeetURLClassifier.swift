@@ -62,6 +62,21 @@ enum MeetURLClassifier {
         }
     }
 
+    /// A meeting code path: lowercase letter groups joined by hyphens, e.g.
+    /// `abc-defg-hij`. Meet's own landing paths (`/`, `/new`, `/landing`,
+    /// `/home`) and its two-component paths (`/lookup/…`) never match.
+    private static let meetingCode = /^[a-z]+(-[a-z]+){2,}$/
+
+    /// Whether this URL is an actual meeting rather than Meet's landing page.
+    /// Meet handles its in-call shortcuts only during a call, so menu items
+    /// that drive them are disabled everywhere else.
+    static func isMeetingPage(_ url: URL?) -> Bool {
+        guard let url, url.host()?.lowercased() == "meet.google.com" else { return false }
+        let components = url.pathComponents.filter { $0 != "/" }
+        guard components.count == 1, let code = components.first else { return false }
+        return code.wholeMatch(of: meetingCode) != nil
+    }
+
     /// Stable identity for a meeting so a second click on the same link
     /// focuses the existing window instead of opening a duplicate.
     /// Meeting URLs carry volatile query params (e.g. ?authuser=0&hs=122).
