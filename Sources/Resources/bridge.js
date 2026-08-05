@@ -109,6 +109,8 @@
       { type: "camera", icons: ["videocam", "videocam_off"], off: "videocam_off" },
       { type: "hand", icons: ["back_hand"] },
       { type: "chat", icons: ["chat", "chat_bubble"] },
+      // Read from panel contents rather than a button; see readPanel.
+      { type: "participants", contents: "[data-panel-container-id] [data-participant-id]" },
     ];
 
     // Null when this element carries no state we understand. Ordered most to
@@ -141,8 +143,26 @@
       return null;
     };
 
+    const isVisible = (element) =>
+      typeof element.checkVisibility === "function"
+        ? element.checkVisibility()
+        : !!(element.offsetWidth || element.offsetHeight);
+
+    // The participants panel's button carries no state attribute, so state has
+    // to come from the panel itself. Meet hides panel contents rather than
+    // removing them, so presence proves nothing and visibility is the signal.
+    //
+    // Never reports "unknown": a panel Meet hasn't rendered yet is, by its very
+    // nature, closed. Reporting unknown here would disable the menu item until
+    // the panel had been opened from Meet's own UI once — the exact thing the
+    // menu item exists to do. Whether there's a call at all is decided natively
+    // from the URL instead.
+    const readPanel = (control) =>
+      [...document.querySelectorAll(control.contents)].some(isVisible);
+
     // True/false while the control exists, null when there is none to read.
     const readOn = (control) => {
+      if (control.contents) return readPanel(control);
       if (!control.button?.isConnected) control.button = findButton(control);
       return control.button ? stateOf(control.button, control) : null;
     };

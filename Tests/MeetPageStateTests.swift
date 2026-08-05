@@ -38,16 +38,19 @@ import Testing
         state.apply(["type": "camera", "on": true])
         state.apply(["type": "hand", "on": true])
         state.apply(["type": "chat", "on": false])
+        state.apply(["type": "participants", "on": true])
         #expect(state.isMicrophoneOn == false)
         #expect(state.isCameraOn == true)
         #expect(state.isHandRaised == true)
         #expect(state.isChatOpen == false)
+        #expect(state.isParticipantsOpen == true)
 
         state.apply(["type": "chat", "on": true])
         #expect(state.isMicrophoneOn == false)
         #expect(state.isCameraOn == true)
         #expect(state.isHandRaised == true)
         #expect(state.isChatOpen == true)
+        #expect(state.isParticipantsOpen == true)
     }
 
     @Test func unrelatedMessagesAreIgnored() {

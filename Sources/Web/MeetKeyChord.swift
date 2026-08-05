@@ -75,4 +75,13 @@ extension MeetKeyChord {
         command: true,
         control: true
     )
+
+    /// Meet's participants panel toggle, ⌃⌘P.
+    static let toggleParticipants = MeetKeyChord(
+        key: "p",
+        code: "KeyP",
+        keyCode: 80,
+        command: true,
+        control: true
+    )
 }

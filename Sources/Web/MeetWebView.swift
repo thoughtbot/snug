@@ -33,7 +33,8 @@ struct MeetWebView: View {
             isMicrophoneOn: state.isMicrophoneOn,
             isCameraOn: state.isCameraOn,
             isHandRaised: state.isHandRaised,
-            isChatOpen: state.isChatOpen
+            isChatOpen: state.isChatOpen,
+            isParticipantsOpen: state.isParticipantsOpen
         )
     }
 
