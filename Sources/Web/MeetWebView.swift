@@ -32,7 +32,8 @@ struct MeetWebView: View {
             isInMeeting: MeetURLClassifier.isMeetingPage(page.url),
             isMicrophoneOn: state.isMicrophoneOn,
             isCameraOn: state.isCameraOn,
-            isHandRaised: state.isHandRaised
+            isHandRaised: state.isHandRaised,
+            isChatOpen: state.isChatOpen
         )
     }
 

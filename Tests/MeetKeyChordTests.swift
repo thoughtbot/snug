@@ -45,6 +45,16 @@ import Testing
         #expect(payload["shiftKey"] as? Bool == false)
     }
 
+    @Test func toggleChatIsControlCommandC() {
+        let payload = MeetKeyChord.toggleChat.jsInit
+        #expect(payload["key"] as? String == "c")
+        #expect(payload["code"] as? String == "KeyC")
+        #expect(payload["keyCode"] as? Int == 67)
+        #expect(payload["metaKey"] as? Bool == true)
+        #expect(payload["ctrlKey"] as? Bool == true)
+        #expect(payload["shiftKey"] as? Bool == false)
+    }
+
     /// Unset modifiers must serialize as `false`, not go missing: bridge.js
     /// spreads this straight into KeyboardEventInit.
     @Test func everyModifierIsAlwaysPresent() {

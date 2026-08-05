@@ -100,21 +100,27 @@
     // while Meet is muted. Each control is located by its icon ligature, which
     // unlike aria-label doesn't change with UI language or with state.
     //
-    // Everything is normalized to "on" (mic live, camera on, hand raised)
-    // because Meet's own attributes disagree on polarity: data-is-muted true
-    // means off, while aria-pressed true means on.
+    // Everything is normalized to "on" (mic live, camera on, hand raised, chat
+    // open) because Meet marks each control differently and they don't even
+    // agree on polarity: data-is-muted true means off, while aria-pressed and
+    // aria-expanded true mean on.
     const controls = [
       { type: "microphone", icons: ["mic", "mic_off"], off: "mic_off" },
       { type: "camera", icons: ["videocam", "videocam_off"], off: "videocam_off" },
       { type: "hand", icons: ["back_hand"] },
+      { type: "chat", icons: ["chat", "chat_bubble"] },
     ];
 
-    // Null when this element carries no state we understand.
+    // Null when this element carries no state we understand. Ordered most to
+    // least specific: the controls that carry data-is-muted also expose other
+    // attributes, so that branch has to win.
     const stateOf = (button, control) => {
       const muted = button.getAttribute("data-is-muted");
       if (muted !== null) return muted !== "true";
       const pressed = button.getAttribute("aria-pressed");
       if (pressed !== null) return pressed === "true";
+      const expanded = button.getAttribute("aria-expanded");
+      if (expanded !== null) return expanded === "true";
       // Last resort for controls whose icon names the off state.
       const icon = button.querySelector("i")?.textContent.trim();
       return control.off && icon ? icon !== control.off : null;

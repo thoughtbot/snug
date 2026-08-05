@@ -29,22 +29,25 @@ import Testing
         #expect(state.isMicrophoneOn == nil)
     }
 
-    /// All three controls share one message shape and one poll, so a report for
-    /// one must not disturb the others.
+    /// Every control shares one message shape and one poll, so a report for one
+    /// must not disturb the others.
     @Test func controlsTrackIndependently() {
         let state = MeetPageState()
 
         state.apply(["type": "microphone", "on": false])
         state.apply(["type": "camera", "on": true])
         state.apply(["type": "hand", "on": true])
+        state.apply(["type": "chat", "on": false])
         #expect(state.isMicrophoneOn == false)
         #expect(state.isCameraOn == true)
         #expect(state.isHandRaised == true)
+        #expect(state.isChatOpen == false)
 
-        state.apply(["type": "camera", "on": false])
+        state.apply(["type": "chat", "on": true])
         #expect(state.isMicrophoneOn == false)
-        #expect(state.isCameraOn == false)
+        #expect(state.isCameraOn == true)
         #expect(state.isHandRaised == true)
+        #expect(state.isChatOpen == true)
     }
 
     @Test func unrelatedMessagesAreIgnored() {

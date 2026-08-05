@@ -15,6 +15,7 @@ struct FocusedMeetPage: Equatable {
     let isMicrophoneOn: Bool?
     let isCameraOn: Bool?
     let isHandRaised: Bool?
+    let isChatOpen: Bool?
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.page === rhs.page
@@ -22,6 +23,7 @@ struct FocusedMeetPage: Equatable {
             && lhs.isMicrophoneOn == rhs.isMicrophoneOn
             && lhs.isCameraOn == rhs.isCameraOn
             && lhs.isHandRaised == rhs.isHandRaised
+            && lhs.isChatOpen == rhs.isChatOpen
     }
 }
 
@@ -103,6 +105,13 @@ struct MeetCommands: Commands {
                 on: state(\.isHandRaised),
                 chord: .toggleHand,
                 key: "h",
+                modifiers: [.control, .command]
+            )
+            control(
+                "Chat",
+                on: state(\.isChatOpen),
+                chord: .toggleChat,
+                key: "c",
                 modifiers: [.control, .command]
             )
         }

@@ -12,11 +12,13 @@ import WebKit
 final class MeetPageState {
     /// Each is nil when Meet exposes no such control to read: the landing page,
     /// or a call whose toolbar hasn't rendered yet. bridge.js normalizes all of
-    /// them to "on", since Meet's own markup disagrees about polarity
-    /// (`data-is-muted` true means off; `aria-pressed` true means on).
+    /// them to "on", since Meet marks each control differently and the markup
+    /// doesn't agree about polarity (`data-is-muted` true means off, while
+    /// `aria-pressed` and `aria-expanded` true mean on).
     var isMicrophoneOn: Bool?
     var isCameraOn: Bool?
     var isHandRaised: Bool?
+    var isChatOpen: Bool?
 
     /// Applies one `meetState` message body. Split out from the message handler
     /// so it can be tested without fabricating a `WKScriptMessage`.
@@ -29,6 +31,8 @@ final class MeetPageState {
             isCameraOn = on
         case "hand":
             isHandRaised = on
+        case "chat":
+            isChatOpen = on
         default:
             break
         }

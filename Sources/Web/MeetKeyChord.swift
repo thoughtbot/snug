@@ -66,4 +66,13 @@ extension MeetKeyChord {
         command: true,
         control: true
     )
+
+    /// Meet's chat panel toggle, ⌃⌘C.
+    static let toggleChat = MeetKeyChord(
+        key: "c",
+        code: "KeyC",
+        keyCode: 67,
+        command: true,
+        control: true
+    )
 }
