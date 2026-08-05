@@ -17,7 +17,7 @@
   };
 
   Object.defineProperty(window, "__meetBridge", {
-    value: Object.freeze({ version: "0.1.0" }),
+    value: Object.freeze({ version: "0.1.1" }),
   });
 
   // WebPage has no native window.open hook, so popups (attached Docs, chat

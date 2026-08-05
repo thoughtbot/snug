@@ -32,7 +32,7 @@ struct SettingsView: View {
             LabeledContent("Default browser:") {
                 VStack(alignment: .leading, spacing: 4) {
                     Button("Use Snug for All Links…") { makeDefaultBrowser() }
-                    Text("Meet opens meet.google.com links itself and sends everything else to the browser above.")
+                    Text("Snug opens meeting links itself and sends everything else to the browser above.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     if let defaultBrowserMessage {
@@ -59,14 +59,18 @@ struct SettingsView: View {
         FileManager.default.displayName(atPath: url.path)
     }
 
+    /// Both schemes: claiming only `http` leaves every https link — which is
+    /// nearly all of them, meeting links included — with the old browser.
     private func makeDefaultBrowser() {
         Task {
             do {
-                try await NSWorkspace.shared.setDefaultApplication(
-                    at: Bundle.main.bundleURL,
-                    toOpenURLsWithScheme: "http"
-                )
-                defaultBrowserMessage = "Meet is now the default browser."
+                for scheme in ["http", "https"] {
+                    try await NSWorkspace.shared.setDefaultApplication(
+                        at: Bundle.main.bundleURL,
+                        toOpenURLsWithScheme: scheme
+                    )
+                }
+                defaultBrowserMessage = "Snug is now the default browser."
             } catch {
                 defaultBrowserMessage = "Not changed: \(error.localizedDescription)"
             }

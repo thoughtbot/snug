@@ -11,11 +11,19 @@ final class URLRouter {
     /// action stays valid after the registering window closes.
     var openMeetingWindow: ((URL) -> Void)?
 
+    /// Also registered by the home window, for the launch-to-open-a-meeting
+    /// case: see `AppDelegate.applicationDidFinishLaunching`.
+    var dismissHomeWindow: (() -> Void)?
+
+    /// Whether an incoming URL has opened a meeting window this session.
+    private(set) var didOpenMeetingWindow = false
+
     func route(_ url: URL) {
         switch MeetURLClassifier.classify(url) {
         case .meet(let meetURL):
             if let openMeetingWindow {
                 openMeetingWindow(MeetURLClassifier.windowValue(for: meetURL))
+                didOpenMeetingWindow = true
                 NSApp.activate()
             } else {
                 NSLog("no meeting-window opener registered; dropping \(meetURL)")

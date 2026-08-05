@@ -34,6 +34,10 @@ struct SnugApp: App {
                 .environment(model)
         }
         .defaultSize(width: 1100, height: 720)
+        // A meeting is over when the window closes, and macOS restores these
+        // windows without their URL anyway — which lands them on the Meet
+        // landing page, looking like a stray second home window.
+        .restorationBehavior(.disabled)
 
         Settings {
             SettingsView()
@@ -42,17 +46,21 @@ struct SnugApp: App {
 }
 
 /// Home window: the signed-in meet.google.com landing page. Also registers
-/// the meeting-window opener with the router (the captured openWindow action
-/// outlives this window).
+/// the meeting-window opener and its own dismissal with the router (the
+/// captured actions stay valid after the registering window closes).
 private struct HomeWindowView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
 
     var body: some View {
         MeetWebView(page: model.homePage)
             .onAppear {
                 URLRouter.shared.openMeetingWindow = { url in
                     openWindow(id: "meeting", value: url)
+                }
+                URLRouter.shared.dismissHomeWindow = {
+                    dismissWindow(id: "home")
                 }
             }
     }

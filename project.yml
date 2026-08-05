@@ -44,7 +44,7 @@ targets:
       properties:
         CFBundleDisplayName: Snug
         CFBundleIconFile: AppIcon
-        CFBundleShortVersionString: "0.1.0"
+        CFBundleShortVersionString: "0.1.1"
         CFBundleVersion: "1"
         LSApplicationCategoryType: public.app-category.productivity
         NSCameraUsageDescription: Snug uses your camera for video calls.
