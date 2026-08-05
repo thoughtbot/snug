@@ -94,42 +94,63 @@
       setTimeout(() => closeSendingVideoButton()?.click(), 4000);
     }, 2000);
 
-    // ---- Mirror Meet's mic state --------------------------------------------
-    // Meet's own button is the only reliable source: WebKit's
-    // microphoneCaptureState reports platform capture and stays active while
-    // Meet is muted. The icon ligature identifies the button independently of
-    // UI language; data-is-muted carries the state when Meet provides it.
-    let micButton = null;
+    // ---- Mirror Meet's control state ----------------------------------------
+    // Meet's own buttons are the only reliable source: WebKit's
+    // microphone/cameraCaptureState report platform capture and stay active
+    // while Meet is muted. Each control is located by its icon ligature, which
+    // unlike aria-label doesn't change with UI language or with state.
+    //
+    // Everything is normalized to "on" (mic live, camera on, hand raised)
+    // because Meet's own attributes disagree on polarity: data-is-muted true
+    // means off, while aria-pressed true means on.
+    const controls = [
+      { type: "microphone", icons: ["mic", "mic_off"], off: "mic_off" },
+      { type: "camera", icons: ["videocam", "videocam_off"], off: "videocam_off" },
+      { type: "hand", icons: ["back_hand"] },
+    ];
 
-    const findMicButton = () => {
+    // Null when this element carries no state we understand.
+    const stateOf = (button, control) => {
+      const muted = button.getAttribute("data-is-muted");
+      if (muted !== null) return muted !== "true";
+      const pressed = button.getAttribute("aria-pressed");
+      if (pressed !== null) return pressed === "true";
+      // Last resort for controls whose icon names the off state.
+      const icon = button.querySelector("i")?.textContent.trim();
+      return control.off && icon ? icon !== control.off : null;
+    };
+
+    // Only accept a candidate we can actually read a state from, so a
+    // decorative copy of the icon (a raised hand in the participant list, say)
+    // can't be mistaken for the control.
+    const findButton = (control) => {
       for (const icon of document.querySelectorAll("i")) {
-        const name = icon.textContent.trim();
-        if (name !== "mic" && name !== "mic_off") continue;
+        if (!control.icons.includes(icon.textContent.trim())) continue;
         const button =
-          icon.closest("[data-is-muted]") ?? icon.closest('[role="button"]');
-        if (button) return button;
+          icon.closest("[data-is-muted]") ??
+          icon.closest('[role="button"]') ??
+          icon.closest("button");
+        if (button && stateOf(button, control) !== null) return button;
       }
       return null;
     };
 
-    // True/false while a mic control exists, null when there is none to read.
-    const readMicMuted = () => {
-      if (!micButton?.isConnected) micButton = findMicButton();
-      if (!micButton) return null;
-      const flag = micButton.getAttribute("data-is-muted");
-      if (flag !== null) return flag === "true";
-      return micButton.querySelector("i")?.textContent.trim() === "mic_off";
+    // True/false while the control exists, null when there is none to read.
+    const readOn = (control) => {
+      if (!control.button?.isConnected) control.button = findButton(control);
+      return control.button ? stateOf(control.button, control) : null;
     };
 
     // Polled rather than observed: Meet's DOM churns constantly, so a filtered
-    // MutationObserver would still need this fallback for the button appearing
+    // MutationObserver would still need this fallback for the buttons appearing
     // and disappearing. Posts only on change, so idle cost is one read a tick.
-    let lastMuted;
     setInterval(() => {
-      const muted = readMicMuted();
-      if (muted === lastMuted) return;
-      lastMuted = muted;
-      postState({ type: "microphone", muted });
+      for (const control of controls) {
+        const on = readOn(control);
+        if (on === control.last) continue;
+        control.last = on;
+        postState({ type: control.type, on });
+      }
     }, 500);
   }
 })();

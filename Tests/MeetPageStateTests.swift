@@ -3,38 +3,56 @@ import Testing
 @testable import Snug
 
 @Suite @MainActor struct MeetPageStateTests {
-    @Test func microphoneMessagesSetMuteState() {
+    @Test func controlMessagesSetOnState() {
         let state = MeetPageState()
-        #expect(state.isMicrophoneMuted == nil)
+        #expect(state.isMicrophoneOn == nil)
 
-        state.apply(["type": "microphone", "muted": true])
-        #expect(state.isMicrophoneMuted == true)
+        state.apply(["type": "microphone", "on": true])
+        #expect(state.isMicrophoneOn == true)
 
-        state.apply(["type": "microphone", "muted": false])
-        #expect(state.isMicrophoneMuted == false)
+        state.apply(["type": "microphone", "on": false])
+        #expect(state.isMicrophoneOn == false)
     }
 
-    /// bridge.js reports null once the mic control disappears (call ended), and
-    /// that has to clear back to "unknown" so the menu item disables rather
-    /// than keeping the last call's state.
-    @Test func missingMuteValueClearsBackToUnknown() {
+    /// bridge.js reports null once a control disappears (call ended), and that
+    /// has to clear back to "unknown" so the menu item disables rather than
+    /// keeping the last call's state.
+    @Test func missingValueClearsBackToUnknown() {
         let state = MeetPageState()
-        state.apply(["type": "microphone", "muted": true])
+        state.apply(["type": "microphone", "on": true])
 
-        state.apply(["type": "microphone", "muted": NSNull()])
-        #expect(state.isMicrophoneMuted == nil)
+        state.apply(["type": "microphone", "on": NSNull()])
+        #expect(state.isMicrophoneOn == nil)
 
-        state.apply(["type": "microphone", "muted": true])
+        state.apply(["type": "microphone", "on": true])
         state.apply(["type": "microphone"])
-        #expect(state.isMicrophoneMuted == nil)
+        #expect(state.isMicrophoneOn == nil)
+    }
+
+    /// All three controls share one message shape and one poll, so a report for
+    /// one must not disturb the others.
+    @Test func controlsTrackIndependently() {
+        let state = MeetPageState()
+
+        state.apply(["type": "microphone", "on": false])
+        state.apply(["type": "camera", "on": true])
+        state.apply(["type": "hand", "on": true])
+        #expect(state.isMicrophoneOn == false)
+        #expect(state.isCameraOn == true)
+        #expect(state.isHandRaised == true)
+
+        state.apply(["type": "camera", "on": false])
+        #expect(state.isMicrophoneOn == false)
+        #expect(state.isCameraOn == false)
+        #expect(state.isHandRaised == true)
     }
 
     @Test func unrelatedMessagesAreIgnored() {
         let state = MeetPageState()
-        state.apply(["type": "microphone", "muted": true])
+        state.apply(["type": "microphone", "on": true])
 
-        state.apply(["type": "somethingElse", "muted": false])
+        state.apply(["type": "somethingElse", "on": false])
         state.apply([:])
-        #expect(state.isMicrophoneMuted == true)
+        #expect(state.isMicrophoneOn == true)
     }
 }

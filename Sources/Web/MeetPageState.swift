@@ -10,16 +10,25 @@ import WebKit
 @MainActor
 @Observable
 final class MeetPageState {
-    /// Nil when there is no mic control to read: the landing page, or a call
-    /// whose toolbar hasn't rendered yet.
-    var isMicrophoneMuted: Bool?
+    /// Each is nil when Meet exposes no such control to read: the landing page,
+    /// or a call whose toolbar hasn't rendered yet. bridge.js normalizes all of
+    /// them to "on", since Meet's own markup disagrees about polarity
+    /// (`data-is-muted` true means off; `aria-pressed` true means on).
+    var isMicrophoneOn: Bool?
+    var isCameraOn: Bool?
+    var isHandRaised: Bool?
 
     /// Applies one `meetState` message body. Split out from the message handler
     /// so it can be tested without fabricating a `WKScriptMessage`.
     func apply(_ body: [String: Any]) {
+        let on = body["on"] as? Bool
         switch body["type"] as? String {
         case "microphone":
-            isMicrophoneMuted = body["muted"] as? Bool
+            isMicrophoneOn = on
+        case "camera":
+            isCameraOn = on
+        case "hand":
+            isHandRaised = on
         default:
             break
         }

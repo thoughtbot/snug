@@ -12,12 +12,16 @@ import WebKit
 struct FocusedMeetPage: Equatable {
     let page: WebPage
     let isInMeeting: Bool
-    let isMicrophoneMuted: Bool?
+    let isMicrophoneOn: Bool?
+    let isCameraOn: Bool?
+    let isHandRaised: Bool?
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.page === rhs.page
             && lhs.isInMeeting == rhs.isInMeeting
-            && lhs.isMicrophoneMuted == rhs.isMicrophoneMuted
+            && lhs.isMicrophoneOn == rhs.isMicrophoneOn
+            && lhs.isCameraOn == rhs.isCameraOn
+            && lhs.isHandRaised == rhs.isHandRaised
     }
 }
 
@@ -48,34 +52,59 @@ struct MeetCommands: Commands {
         return meet.page
     }
 
-    /// Whether Meet's mic is muted, or nil when there is no mic control to
-    /// drive: outside a call, or before Meet has rendered its toolbar.
-    private var isMuted: Bool? {
-        guard inMeeting != nil else { return nil }
-        return meet?.isMicrophoneMuted
+    /// Whether a control is on, or nil when there is nothing to drive: outside
+    /// a call, or before Meet has rendered its toolbar.
+    private func state(_ control: KeyPath<FocusedMeetPage, Bool?>) -> Bool? {
+        guard inMeeting != nil, let meet else { return nil }
+        return meet[keyPath: control]
     }
 
-    /// Reading reports Meet's current state; writing ignores the requested
-    /// value and just asks Meet to toggle. The real new state arrives back from
-    /// Meet's own button via `MeetPageState`, which is what keeps the checkmark
-    /// honest when the mic is toggled on screen instead of from this menu.
-    private var isMicrophoneOn: Binding<Bool> {
-        Binding(
-            get: { isMuted == false },
+    /// One Meet control as a checkable menu item.
+    ///
+    /// `Toggle`, not `Button`: it's what renders a checkmark. The binding is
+    /// unusual — writing to it ignores the requested value and just asks Meet
+    /// to toggle, because Meet offers one chord for both directions. The real
+    /// new state arrives back from Meet's own button via `MeetPageState`, which
+    /// is what keeps the checkmark honest when a control is used on screen
+    /// rather than from this menu.
+    private func control(
+        _ title: String,
+        on: Bool?,
+        chord: MeetKeyChord,
+        key: KeyEquivalent,
+        modifiers: EventModifiers = .command
+    ) -> some View {
+        Toggle(title, isOn: Binding(
+            get: { on == true },
             set: { _ in
-                if let inMeeting {
-                    MeetKeyboard.send(.toggleMicrophone, to: inMeeting)
-                }
+                if let inMeeting { MeetKeyboard.send(chord, to: inMeeting) }
             }
-        )
+        ))
+        .keyboardShortcut(key, modifiers: modifiers)
+        .disabled(on == nil)
     }
 
     var body: some Commands {
         CommandMenu("Meeting") {
-            // Toggle, not Button: it's what renders as a checkable menu item.
-            Toggle("Microphone", isOn: isMicrophoneOn)
-                .keyboardShortcut("d", modifiers: .command)
-                .disabled(isMuted == nil)
+            control(
+                "Microphone",
+                on: state(\.isMicrophoneOn),
+                chord: .toggleMicrophone,
+                key: "d"
+            )
+            control(
+                "Camera",
+                on: state(\.isCameraOn),
+                chord: .toggleCamera,
+                key: "e"
+            )
+            control(
+                "Hand Raised",
+                on: state(\.isHandRaised),
+                chord: .toggleHand,
+                key: "h",
+                modifiers: [.control, .command]
+            )
         }
 
         // Replaces the default "Snug Help" item, which leads nowhere: there is

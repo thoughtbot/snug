@@ -30,7 +30,9 @@ struct MeetWebView: View {
         FocusedMeetPage(
             page: page,
             isInMeeting: MeetURLClassifier.isMeetingPage(page.url),
-            isMicrophoneMuted: state.isMicrophoneMuted
+            isMicrophoneOn: state.isMicrophoneOn,
+            isCameraOn: state.isCameraOn,
+            isHandRaised: state.isHandRaised
         )
     }
 

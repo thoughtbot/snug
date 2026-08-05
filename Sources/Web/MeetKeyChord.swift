@@ -48,4 +48,22 @@ extension MeetKeyChord {
         keyCode: 68,
         command: true
     )
+
+    /// Meet's camera toggle. Same story as `toggleMicrophone`: one chord for
+    /// both directions, with the state mirrored back out of Meet's own button.
+    static let toggleCamera = MeetKeyChord(
+        key: "e",
+        code: "KeyE",
+        keyCode: 69,
+        command: true
+    )
+
+    /// Meet's raise/lower hand toggle, ⌃⌘H.
+    static let toggleHand = MeetKeyChord(
+        key: "h",
+        code: "KeyH",
+        keyCode: 72,
+        command: true,
+        control: true
+    )
 }
