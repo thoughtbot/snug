@@ -4,6 +4,7 @@ import WebKit
 /// Hosts a Meet `WebPage` in SwiftUI via the macOS 26 WebView.
 struct MeetWebView: View {
     let page: WebPage
+    let state: MeetPageState
     @State private var assertion = PowerAssertion()
 
     var body: some View {
@@ -21,13 +22,15 @@ struct MeetWebView: View {
             .onDisappear { assertion.setActive(false) }
     }
 
-    /// What menu commands act on. Reading `page.url` here — in the body's
+    /// What menu commands act on. Reading the page's state here — in the body's
     /// dependency graph rather than inside the command — is what makes menu
-    /// items re-enable when this window navigates into a call.
+    /// items re-enable when this window navigates into a call, and what keeps
+    /// the Microphone checkmark in step with Meet.
     private var focusedPage: FocusedMeetPage {
         FocusedMeetPage(
             page: page,
-            isInMeeting: MeetURLClassifier.isMeetingPage(page.url)
+            isInMeeting: MeetURLClassifier.isMeetingPage(page.url),
+            isMicrophoneMuted: state.isMicrophoneMuted
         )
     }
 

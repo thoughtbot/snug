@@ -6,9 +6,10 @@ import WebKit
 final class AppModel {
     let bridge = BridgeMessageHandler()
     let homePage: WebPage
+    let homeState = MeetPageState()
 
     init() {
-        homePage = MeetPageFactory.makePage(bridge: bridge)
+        homePage = MeetPageFactory.makePage(bridge: bridge, state: homeState)
     }
 }
 
@@ -55,7 +56,7 @@ private struct HomeWindowView: View {
     @Environment(\.dismissWindow) private var dismissWindow
 
     var body: some View {
-        MeetWebView(page: model.homePage)
+        MeetWebView(page: model.homePage, state: model.homeState)
             .onAppear {
                 URLRouter.shared.openMeetingWindow = { url in
                     openWindow(id: "meeting", value: url)
@@ -72,18 +73,19 @@ private struct MeetingWindowView: View {
     @Environment(AppModel.self) private var model
     let url: URL?
     @State private var page: WebPage?
+    @State private var state = MeetPageState()
 
     var body: some View {
         Group {
             if let page {
-                MeetWebView(page: page)
+                MeetWebView(page: page, state: state)
             } else {
                 Color.clear
             }
         }
         .onAppear {
             if page == nil {
-                let newPage = MeetPageFactory.makePage(bridge: model.bridge)
+                let newPage = MeetPageFactory.makePage(bridge: model.bridge, state: state)
                 newPage.load(URLRequest(url: url ?? MeetPageFactory.homeURL))
                 page = newPage
             }

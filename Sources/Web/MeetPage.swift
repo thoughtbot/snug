@@ -14,7 +14,9 @@ enum MeetPageFactory {
 
     static let homeURL = URL(string: "https://meet.google.com/")!
 
-    static func makePage(bridge: BridgeMessageHandler) -> WebPage {
+    /// `state` is per page: it receives that page's `meetState` messages, and
+    /// the window's view reads it to draw menu state.
+    static func makePage(bridge: BridgeMessageHandler, state: MeetPageState) -> WebPage {
         var configuration = WebPage.Configuration()
         configuration.websiteDataStore = .default()
         configuration.deviceSensorAuthorization = .init { permission, _, origin in
@@ -40,6 +42,7 @@ enum MeetPageFactory {
             ))
         }
         controller.add(bridge, contentWorld: .page, name: "meetBridge")
+        controller.add(MeetStateHandler(state: state), contentWorld: .page, name: "meetState")
         configuration.userContentController = controller
 
         let page = WebPage(configuration: configuration)

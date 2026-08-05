@@ -38,4 +38,14 @@ extension MeetKeyChord {
         keyCode: 191,
         shift: true
     )
+
+    /// Meet's mute toggle. There is no separate mute and unmute chord, so the
+    /// menu item's checkmark comes from `MeetPageState`, which mirrors Meet's
+    /// own button, rather than from anything tracked on this side.
+    static let toggleMicrophone = MeetKeyChord(
+        key: "d",
+        code: "KeyD",
+        keyCode: 68,
+        command: true
+    )
 }

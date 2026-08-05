@@ -16,6 +16,16 @@
     }
   };
 
+  // Separate handler: page->app mirroring of Meet's own control state, which
+  // is per-page, unlike the shared meetBridge events.
+  const postState = (message) => {
+    try {
+      window.webkit.messageHandlers.meetState.postMessage(message);
+    } catch (e) {
+      // Handler not installed (e.g. subframe); nothing to do.
+    }
+  };
+
   // Replays a keystroke in the page so native menu items can drive Meet's own
   // keyboard handlers. Returns whether anything called preventDefault, a rough
   // "Meet handled it" signal for the native log.
@@ -83,5 +93,43 @@
       setTimeout(() => hideSelfButton()?.click(), 200);
       setTimeout(() => closeSendingVideoButton()?.click(), 4000);
     }, 2000);
+
+    // ---- Mirror Meet's mic state --------------------------------------------
+    // Meet's own button is the only reliable source: WebKit's
+    // microphoneCaptureState reports platform capture and stays active while
+    // Meet is muted. The icon ligature identifies the button independently of
+    // UI language; data-is-muted carries the state when Meet provides it.
+    let micButton = null;
+
+    const findMicButton = () => {
+      for (const icon of document.querySelectorAll("i")) {
+        const name = icon.textContent.trim();
+        if (name !== "mic" && name !== "mic_off") continue;
+        const button =
+          icon.closest("[data-is-muted]") ?? icon.closest('[role="button"]');
+        if (button) return button;
+      }
+      return null;
+    };
+
+    // True/false while a mic control exists, null when there is none to read.
+    const readMicMuted = () => {
+      if (!micButton?.isConnected) micButton = findMicButton();
+      if (!micButton) return null;
+      const flag = micButton.getAttribute("data-is-muted");
+      if (flag !== null) return flag === "true";
+      return micButton.querySelector("i")?.textContent.trim() === "mic_off";
+    };
+
+    // Polled rather than observed: Meet's DOM churns constantly, so a filtered
+    // MutationObserver would still need this fallback for the button appearing
+    // and disappearing. Posts only on change, so idle cost is one read a tick.
+    let lastMuted;
+    setInterval(() => {
+      const muted = readMicMuted();
+      if (muted === lastMuted) return;
+      lastMuted = muted;
+      postState({ type: "microphone", muted });
+    }, 500);
   }
 })();
