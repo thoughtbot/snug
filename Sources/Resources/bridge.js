@@ -184,5 +184,104 @@
         postState({ type: control.type, on });
       }
     }, 500);
+
+    // ---- Auto-join -----------------------------------------------------------
+    // Gated by window.__snugAutoJoin, off by default.
+    //
+    // The join button is the one thing here with no language-independent
+    // semantic hook: no icon ligature, no aria-label, and an accessible name
+    // that is localized copy. So match it two independent ways and take
+    // whichever lands. A Meet rebuild breaks the generated identifiers; a
+    // wording change breaks the labels; it takes both to break auto-join.
+    const joinSelectors = [
+      '[jsname="Qx7uuf"] button', // primary-action slot on the join screen
+      '[jslog*="227430"]', // analytics id for the join action
+      '[data-promo-anchor-id="w5gBed"]',
+    ];
+
+    // Matched whole, never as substrings: "join" on its own would also match
+    // "Join and use a phone for audio". English only — any other UI language
+    // falls through to the selectors above.
+    const joinLabels = ["join now", "ask to join", "join anyway", "join"];
+
+    const accessibleName = (element) =>
+      (element.getAttribute("aria-label") ?? element.textContent ?? "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+
+    // Clicking the wrong element here takes a real action rather than just
+    // drawing a wrong checkmark, so a candidate has to be an enabled, visible
+    // button before it gets clicked. Meet also disables this button while it
+    // sets up devices, which is why the caller keeps retrying.
+    const isClickable = (button) =>
+      !!button &&
+      !button.disabled &&
+      button.getAttribute("aria-disabled") !== "true" &&
+      isVisible(button);
+
+    const joinButton = () => {
+      for (const selector of joinSelectors) {
+        for (const match of document.querySelectorAll(selector)) {
+          const button =
+            match.tagName === "BUTTON" ? match : match.closest("button");
+          if (isClickable(button)) return button;
+        }
+      }
+      for (const button of document.querySelectorAll("button")) {
+        if (joinLabels.includes(accessibleName(button)) && isClickable(button)) {
+          return button;
+        }
+      }
+      return null;
+    };
+
+    // Both ways of matching are guesses about someone else's markup, so say so
+    // out loud when they both miss. Without this the setting just looks broken;
+    // with it, the fix is reading one log line.
+    let reportedPath = null;
+    const reportMiss = () => {
+      if (reportedPath === location.pathname) return;
+      reportedPath = location.pathname;
+      post({
+        type: "autoJoinNoButton",
+        url: location.href,
+        buttons: [...document.querySelectorAll("button")]
+          .filter(isVisible)
+          .slice(0, 25)
+          .map((button) => ({
+            name: accessibleName(button),
+            jsname: button.getAttribute("jsname"),
+            jslog: button.getAttribute("jslog"),
+            promo: button.getAttribute("data-promo-anchor-id"),
+          })),
+      });
+    };
+
+    // Keyed by path, like hide-self view, so SPA navigation to another meeting
+    // re-arms it. Without the one-shot, leaving a call could bounce back through
+    // the join screen and rejoin instantly — a trap with no way out but turning
+    // the setting off.
+    let joinedPath = null;
+    let misses = 0;
+    setInterval(() => {
+      if (!window.__snugAutoJoin) return;
+      if (joinedPath === location.pathname) return;
+      if (!isOnJoinPage()) {
+        misses = 0;
+        return;
+      }
+      const button = joinButton();
+      if (!button) {
+        // A few misses are expected while Meet sets up devices and keeps the
+        // button disabled; only report once nothing is plausibly coming.
+        if (++misses === 20) reportMiss();
+        return;
+      }
+      misses = 0;
+      joinedPath = location.pathname;
+      post({ type: "autoJoined", url: location.href });
+      button.click();
+    }, 500);
   }
 })();

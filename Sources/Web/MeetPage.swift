@@ -28,7 +28,10 @@ enum MeetPageFactory {
         let controller = WKUserContentController()
         // Preference flags must exist before bridge.js reads them.
         controller.addUserScript(WKUserScript(
-            source: "window.__snugHideSelf = \(Preferences.hideSelfView);",
+            source: """
+                window.\(SnugFlag.hideSelfView.rawValue) = \(Preferences.hideSelfView);
+                window.\(SnugFlag.autoJoin.rawValue) = \(Preferences.autoJoin);
+                """,
             injectionTime: .atDocumentStart,
             forMainFrameOnly: true,
             in: .page

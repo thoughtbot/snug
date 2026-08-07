@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var defaultBrowserMessage: String?
 
     @State private var hideSelfView = Preferences.hideSelfView
+    @State private var autoJoin = Preferences.autoJoin
 
     var body: some View {
         Form {
@@ -15,6 +16,14 @@ struct SettingsView: View {
                     Preferences.hideSelfView = newValue
                 }
             Text("Your camera stays on for others; only your own preview is hidden. Applies from the next time someone joins.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Toggle("Join meetings automatically", isOn: $autoJoin)
+                .onChange(of: autoJoin) { _, newValue in
+                    Preferences.autoJoin = newValue
+                }
+            Text("Skips Meet's \"Ready to join?\" screen. You won't get a chance to check your camera and microphone first.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

@@ -21,6 +21,12 @@ final class BridgeMessageHandler: NSObject, WKScriptMessageHandler {
         case "ready":
             NSLog("bridge ready: \(body["url"] as? String ?? "?")")
             confirmRoundTrip(message.webView)
+        case "autoJoined":
+            NSLog("auto-joined: \(body["url"] as? String ?? "?")")
+        case "autoJoinNoButton":
+            // Both matching strategies missed; the buttons actually on the page
+            // are the fix, so log them rather than leaving a silent no-op.
+            NSLog("auto-join found no button: \(body["buttons"] ?? "none")")
         case "openWindow":
             guard let urlString = body["url"] as? String,
                   let url = URL(string: urlString),
