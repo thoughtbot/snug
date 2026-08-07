@@ -1,9 +1,9 @@
 # Snug
 
 A native macOS client for Google Meet. Snug opens your Meet links in a real Mac
-app, with camera, microphone, native screen sharing, per-meeting windows, and
-URL routing so meeting links open in Snug, while everything else goes to your
-regular browser.
+app, with camera, microphone, native screen sharing, per-meeting windows, menu
+bar controls for the call itself, and URL routing so meeting links open in Snug,
+while everything else goes to your regular browser.
 
 Built with SwiftUI and the macOS 26 `WebView`/`WebPage` API. Requires
 **macOS 26 (Tahoe)** or later.
@@ -25,9 +25,32 @@ Optional, in **Snug → Settings**:
   Meet links open in Snug, everything else forwards to the browser above.
 - **"Hide my video tile once others join"** (on by default) minimizes your
   self-view automatically when a call starts.
+- **"Join meetings automatically"** (off by default) skips Meet's "Ready to
+  join?" screen, so opening a meeting link puts you straight into the call —
+  without the chance to check your camera and microphone first.
 
 You can also route links to Snug with [Choosy](https://choosy.app) or apps like
 it, instead of making it the default browser.
+
+## Meeting controls
+
+The **Meeting** menu drives the call, and each item shows whether it is
+currently on. The checkmarks follow Meet itself, so they stay right when you use
+its on-screen buttons instead of the menu:
+
+- **Microphone** — ⌘D
+- **Camera** — ⌘E
+- **Hand Raised** — ⌃⌘H
+- **Chat** — ⌃⌘C
+- **Participants** — ⌃⌘P
+- **Captions** — no menu shortcut; press `c` in the meeting
+
+Captions is deliberately left without one. Meet binds it to an unmodified `c`,
+and a bare key equivalent in the menu bar outranks the page — it would swallow
+every "c" you typed into chat. Leaving the key to Meet keeps that working, since
+Meet already knows to ignore its own shortcuts while you're typing.
+
+**Help → Google Meet Keyboard Shortcuts** (⌘/) opens Meet's own full list.
 
 ## Build from source
 
@@ -69,11 +92,14 @@ Release builds are placed in files like `dist/Snug-<version>.dmg`.
   stops working, that's the first place to look:
   - **Menu items** don't call anything — they replay Meet's own keyboard
     shortcuts inside the page, so they inherit whatever Meet currently binds.
-    **Help → Google Meet Keyboard Shortcuts** shows Meet's full list.
-  - **Meeting → Microphone** takes its checkmark from Meet's on-screen mic
-    button, which is what keeps it correct when you mute from the page rather
-    than from the menu. Note that macOS reports the microphone as in use the
-    whole time you're in a call, muted or not; that's Meet holding the
-    capture open, and is unrelated to the menu's state.
+  - **The checkmarks** are read back out of Meet's own controls, which is what
+    keeps them honest when you use the on-screen buttons instead of the menu.
+    Meet marks each control differently, so each is read its own way. Note that
+    macOS reports the microphone as in use for the whole call, muted or not —
+    that's Meet holding the capture open, and says nothing about mute state.
+  - **Auto-join** is the most exposed of these. Meet's join button has no icon
+    or accessible label to match on, only generated identifiers and localized
+    text, so Snug tries both. If they ever both miss it says so in its log
+    rather than failing silently.
   - **Self-view hiding** drives Meet's own UI (a port of
     [google-meet-hide-self](https://github.com/Cryptacular/google-meet-hide-self)).
