@@ -64,6 +64,11 @@ private struct HomeWindowView: View {
                 URLRouter.shared.dismissHomeWindow = {
                     dismissWindow(id: "home")
                 }
+                // Opened by SwiftUI alongside the meeting window rather than
+                // asked for; the link arrived before this window existed.
+                if URLRouter.shared.consumeLandingSuppression() {
+                    dismissWindow(id: "home")
+                }
             }
     }
 }
