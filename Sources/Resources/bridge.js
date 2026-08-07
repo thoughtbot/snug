@@ -109,6 +109,12 @@
       { type: "camera", icons: ["videocam", "videocam_off"], off: "videocam_off" },
       { type: "hand", icons: ["back_hand"] },
       { type: "chat", icons: ["chat", "chat_bubble"] },
+      // No state attribute at all; only the ligature distinguishes the states.
+      {
+        type: "captions",
+        icons: ["closed_caption", "closed_caption_off"],
+        off: "closed_caption_off",
+      },
       // Read from panel contents rather than a button; see readPanel.
       { type: "participants", contents: "[data-panel-container-id] [data-participant-id]" },
     ];

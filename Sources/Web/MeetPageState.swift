@@ -20,6 +20,7 @@ final class MeetPageState {
     var isHandRaised: Bool?
     var isChatOpen: Bool?
     var isParticipantsOpen: Bool?
+    var isCaptionsOn: Bool?
 
     /// Applies one `meetState` message body. Split out from the message handler
     /// so it can be tested without fabricating a `WKScriptMessage`.
@@ -36,6 +37,8 @@ final class MeetPageState {
             isChatOpen = on
         case "participants":
             isParticipantsOpen = on
+        case "captions":
+            isCaptionsOn = on
         default:
             break
         }

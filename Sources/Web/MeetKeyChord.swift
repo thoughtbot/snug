@@ -84,4 +84,15 @@ extension MeetKeyChord {
         command: true,
         control: true
     )
+
+    /// Meet's captions toggle. Deliberately unmodified: Meet binds this to a
+    /// bare `c`, and its menu item carries no key equivalent so that macOS
+    /// never claims the key. Meet handles the keystroke itself, which is what we
+    /// want — it knows when its own chat composer has focus and Snug can't see
+    /// focus inside the page.
+    static let toggleCaptions = MeetKeyChord(
+        key: "c",
+        code: "KeyC",
+        keyCode: 67
+    )
 }

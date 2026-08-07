@@ -17,6 +17,7 @@ struct FocusedMeetPage: Equatable {
     let isHandRaised: Bool?
     let isChatOpen: Bool?
     let isParticipantsOpen: Bool?
+    let isCaptionsOn: Bool?
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.page === rhs.page
@@ -26,6 +27,7 @@ struct FocusedMeetPage: Equatable {
             && lhs.isHandRaised == rhs.isHandRaised
             && lhs.isChatOpen == rhs.isChatOpen
             && lhs.isParticipantsOpen == rhs.isParticipantsOpen
+            && lhs.isCaptionsOn == rhs.isCaptionsOn
     }
 }
 
@@ -71,12 +73,17 @@ struct MeetCommands: Commands {
     /// new state arrives back from Meet's own button via `MeetPageState`, which
     /// is what keeps the checkmark honest when a control is used on screen
     /// rather than from this menu.
+    ///
+    /// A nil `shortcut` leaves the key unclaimed by macOS so it reaches the page
+    /// instead. That's the right call for Meet's unmodified shortcuts: a bare
+    /// key equivalent outranks the web view and would swallow that letter
+    /// everywhere in the page, and Meet already suppresses its own shortcuts
+    /// while a text field has focus — something Snug can't see from out here.
     private func control(
         _ title: String,
         on: Bool?,
         chord: MeetKeyChord,
-        key: KeyEquivalent,
-        modifiers: EventModifiers = .command
+        shortcut: KeyboardShortcut? = nil
     ) -> some View {
         Toggle(title, isOn: Binding(
             get: { on == true },
@@ -84,7 +91,7 @@ struct MeetCommands: Commands {
                 if let inMeeting { MeetKeyboard.send(chord, to: inMeeting) }
             }
         ))
-        .keyboardShortcut(key, modifiers: modifiers)
+        .keyboardShortcut(shortcut)
         .disabled(on == nil)
     }
 
@@ -94,34 +101,39 @@ struct MeetCommands: Commands {
                 "Microphone",
                 on: state(\.isMicrophoneOn),
                 chord: .toggleMicrophone,
-                key: "d"
+                shortcut: .init("d", modifiers: .command)
             )
             control(
                 "Camera",
                 on: state(\.isCameraOn),
                 chord: .toggleCamera,
-                key: "e"
+                shortcut: .init("e", modifiers: .command)
             )
             control(
                 "Hand Raised",
                 on: state(\.isHandRaised),
                 chord: .toggleHand,
-                key: "h",
-                modifiers: [.control, .command]
+                shortcut: .init("h", modifiers: [.control, .command])
             )
             control(
                 "Chat",
                 on: state(\.isChatOpen),
                 chord: .toggleChat,
-                key: "c",
-                modifiers: [.control, .command]
+                shortcut: .init("c", modifiers: [.control, .command])
             )
             control(
                 "Participants",
                 on: state(\.isParticipantsOpen),
                 chord: .toggleParticipants,
-                key: "p",
-                modifiers: [.control, .command]
+                shortcut: .init("p", modifiers: [.control, .command])
+            )
+            // No shortcut: Meet's bare `c` is left to the page. The key is named
+            // in the title instead, since AppKit's shortcut column exists only
+            // for keys the menu actually claims.
+            control(
+                "Captions (C)",
+                on: state(\.isCaptionsOn),
+                chord: .toggleCaptions
             )
         }
 
